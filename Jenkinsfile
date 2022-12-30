@@ -45,17 +45,17 @@ pipeline{
             steps{
 
                 script{
-                    //withCredentials([string(credentialsId: 'nexus-passwd', variable: 'nexus-creds')]) {
+                    withCredentials([string(credentialsId: 'nexus-passwd', variable: 'nexus-creds')]) {
                     sh '''
                     docker build -t 13.126.93.237:8083/springapp:${VERSION} .
 
-                    docker login -u admin -p 123456789 13.126.93.237:8083
+                    docker login -u admin -p $nexus_creds 3.83.66.55:8083
 
                     docker push 13.126.93.237:8083/springapp:${VERSION}
 
                     docker rmi 13.126.93.237:8083/springapp:${VERSION}
                     '''
-                   // }
+                    }
                 }
             }
 
@@ -71,6 +71,14 @@ pipeline{
                     }
                 }
             } 
+        }
+        stage('Pushing the helm charts to Nexus repo'){
+
+            steps{
+                script{
+                    sh 'curl -u admin:$nexus_password http://nexus_machine_ip:8081/repository/helm-hosted/ --upload-file myapp-${helmversion}.tgz -v '
+                }
+            }
         }
     }
     post {
